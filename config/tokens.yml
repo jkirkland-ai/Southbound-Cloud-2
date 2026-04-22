@@ -1,0 +1,32 @@
+# Tokens to monitor. Add/remove entries here.
+# - coingecko_id: slug used by https://api.coingecko.com/api/v3/coins/<id>
+# - erc20: optional ERC-20 contract address on Ethereum mainnet.
+#          If present, whale-transfer signals can be evaluated for this asset.
+tokens:
+  - symbol: BTC
+    name: Bitcoin
+    coingecko_id: bitcoin
+
+  - symbol: ETH
+    name: Ethereum
+    coingecko_id: ethereum
+    # Native ETH transfers on mainnet; no contract address.
+    native_eth: true
+
+  - symbol: BIO
+    name: Bio Protocol
+    coingecko_id: bio-protocol
+    erc20: "0xcb1592591996765ec0efc1f92599a19767ee5ffa"
+
+  - symbol: HYPE
+    name: Hyperliquid
+    coingecko_id: hyperliquid
+
+  - symbol: ONDO
+    name: Ondo
+    coingecko_id: ondo-finance
+    erc20: "0xfAbA6f8e4a5E8Ab82F62fe7C39859FA577269BE3"
+
+  - symbol: ATOM
+    name: Cosmos Hub
+    coingecko_id: cosmos

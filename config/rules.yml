@@ -1,0 +1,111 @@
+# Alert rules. Edit this file from github.com on mobile; the next
+# scheduled run will pick up your changes.
+#
+# Supported signals:
+#   rsi              params: period, threshold, direction (above|below), timeframe (1h|4h|1d)
+#   macd_cross       params: direction (bullish|bearish), timeframe
+#   sma_cross        params: fast, slow, direction (bullish|bearish), timeframe
+#   bollinger_break  params: period, stddev, direction (above|below), timeframe
+#   price_change_pct params: window (1h|24h|7d), threshold (negative = drop)
+#   price_level      params: level, direction (above|below)
+#   volume_spike     params: lookback_hours, multiplier
+#   whale_transfer   params: min_usd            (only for ETH / ERC-20 assets)
+#
+# cooldown_minutes prevents the same rule from firing repeatedly.
+
+alert_email: Jkirkland@alumni.nmu.edu
+
+rules:
+  # --- Technical indicators ---
+  - name: ETH RSI oversold (1h)
+    asset: ETH
+    signal: rsi
+    params: {period: 14, threshold: 30, direction: below, timeframe: 1h}
+    cooldown_minutes: 120
+
+  - name: ETH RSI overbought (1h)
+    asset: ETH
+    signal: rsi
+    params: {period: 14, threshold: 70, direction: above, timeframe: 1h}
+    cooldown_minutes: 120
+
+  - name: BTC RSI oversold (4h)
+    asset: BTC
+    signal: rsi
+    params: {period: 14, threshold: 30, direction: below, timeframe: 4h}
+    cooldown_minutes: 240
+
+  - name: ETH MACD bullish cross (1h)
+    asset: ETH
+    signal: macd_cross
+    params: {direction: bullish, timeframe: 1h}
+    cooldown_minutes: 180
+
+  - name: BTC golden cross 20/50 (1h)
+    asset: BTC
+    signal: sma_cross
+    params: {fast: 20, slow: 50, direction: bullish, timeframe: 1h}
+    cooldown_minutes: 360
+
+  # --- Price / % thresholds ---
+  - name: BTC drops 5% in 1h
+    asset: BTC
+    signal: price_change_pct
+    params: {window: 1h, threshold: -5}
+    cooldown_minutes: 60
+
+  - name: ETH drops 5% in 1h
+    asset: ETH
+    signal: price_change_pct
+    params: {window: 1h, threshold: -5}
+    cooldown_minutes: 60
+
+  - name: HYPE moves 10% in 24h
+    asset: HYPE
+    signal: price_change_pct
+    params: {window: 24h, threshold: 10}
+    cooldown_minutes: 240
+
+  - name: ONDO moves 10% in 24h
+    asset: ONDO
+    signal: price_change_pct
+    params: {window: 24h, threshold: 10}
+    cooldown_minutes: 240
+
+  # --- Volume spikes ---
+  - name: ETH volume spike (3x)
+    asset: ETH
+    signal: volume_spike
+    params: {lookback_hours: 24, multiplier: 3}
+    cooldown_minutes: 60
+
+  - name: ONDO volume spike (3x)
+    asset: ONDO
+    signal: volume_spike
+    params: {lookback_hours: 24, multiplier: 3}
+    cooldown_minutes: 60
+
+  - name: BIO volume spike (3x)
+    asset: BIO
+    signal: volume_spike
+    params: {lookback_hours: 24, multiplier: 3}
+    cooldown_minutes: 60
+
+  # --- On-chain whale transfers (ERC-20 / ETH only) ---
+  - name: ETH whale transfer (>= $1M)
+    asset: ETH
+    signal: whale_transfer
+    params: {min_usd: 1000000}
+    cooldown_minutes: 30
+
+  - name: ONDO whale transfer (>= $500k)
+    asset: ONDO
+    signal: whale_transfer
+    params: {min_usd: 500000}
+    cooldown_minutes: 30
+
+  - name: BIO whale transfer (>= $250k)
+    asset: BIO
+    signal: whale_transfer
+    params: {min_usd: 250000}
+    cooldown_minutes: 30

@@ -1,0 +1,102 @@
+:root {
+  --bg: #0b0f17;
+  --panel: #131926;
+  --panel-2: #1b2332;
+  --fg: #e5ecf6;
+  --muted: #8893a5;
+  --up: #26a69a;
+  --down: #ef5350;
+  --accent: #4ea1ff;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #1f2838;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+
+header h1 { font-size: 17px; font-weight: 600; margin: 0; }
+#updated { font-size: 12px; color: var(--muted); }
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+
+.tile {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tile .sym { font-weight: 600; letter-spacing: 0.02em; }
+.tile .price { font-variant-numeric: tabular-nums; font-size: 16px; }
+.tile .chg { font-size: 12px; font-variant-numeric: tabular-nums; }
+.tile .chg.up { color: var(--up); }
+.tile .chg.down { color: var(--down); }
+
+#charts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 24px;
+}
+
+.chart-card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 10px 10px 4px;
+}
+
+.chart-card header {
+  position: static;
+  padding: 0 2px 6px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.chart-card h3 { margin: 0; font-size: 14px; }
+.chart-card .meta { font-size: 12px; color: var(--muted); }
+.chart-card .chart-el { width: 100%; height: 220px; }
+
+.alerts { padding: 0 16px 40px; }
+.alerts h2 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.alerts ul { list-style: none; padding: 0; margin: 0; }
+.alerts li {
+  padding: 10px 12px;
+  background: var(--panel-2);
+  margin-bottom: 6px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.alerts li .ts { color: var(--muted); font-size: 11px; display: block; margin-top: 2px; }
+
+@media (min-width: 720px) {
+  #charts { display: grid; grid-template-columns: 1fr 1fr; }
+}
