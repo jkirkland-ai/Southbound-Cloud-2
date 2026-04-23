@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "analyzer/**"
+      - "config/**"
+      - "requirements.txt"
+      - ".github/workflows/analyze.yml"
 
 permissions:
   contents: write
