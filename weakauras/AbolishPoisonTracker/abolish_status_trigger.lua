@@ -1,59 +1,72 @@
--- Optional secondary trigger used by each per-unit Abolish Poison icon.
--- The simplest way is to use the built-in Aura trigger:
+-- Custom Status trigger for the "Abolish Poison + Wound Poison stacks" group.
+-- Emits one state per group slot (player + party1..4) so a Dynamic Group of
+-- icons auto-arranges itself.
 --
---   Trigger ▸ Type: Aura
---   Buff/Debuff: Buff
---   Aura Name: Abolish Poison
---   Specific Unit: party1   (one icon per unit: party1..party4 + player)
---   Show on: Always (so you see "missing" state too)
---
--- If you prefer a single dynamic-group trigger, use this Custom Aura
--- function instead, which returns one entry per group member.
---
--- Trigger ▸ Type: Custom ▸ Event Type: Status
---   Check On:  Every Frame  (or  GROUP_ROSTER_UPDATE,UNIT_AURA)
---   Custom Trigger:  the function below
+-- Wire-up in WeakAuras:
+--   Trigger ▸ Type: Custom ▸ Event Type: Status
+--   Check On:  GROUP_ROSTER_UPDATE, UNIT_AURA, PLAYER_ENTERING_WORLD
+--   Custom Trigger:  this function
 --   Custom Untrigger: function() return false end
---   Custom Variables: { unit = "string", remaining = "number", hasBuff = "bool" }
---   In "Display ▸ Dynamic Info" return: { name, icon, duration, expiration, ... }
+--
+--   Custom Variables (so WA exposes them in Display/Conditions):
+--     unit       = "string"
+--     name       = "string"
+--     hasAbolish = "bool"
+--     stacks     = "number"
+--
+-- The state also fills `icon`, `duration`, `expirationTime`, `progressType`,
+-- and `value/total` so a Cooldown swipe and a "%stacks" text just work.
 
 function(allstates)
-    local units = { "player", "party1", "party2", "party3", "party4" }
-    local SPELL = "Abolish Poison"
-    local now = GetTime()
+    local units   = { "player", "party1", "party2", "party3", "party4" }
+    local ABOLISH = "Abolish Poison"
+    local WOUND   = "Wound Poison"
+    local FALLBACK_ICON = 136067 -- Spell_Nature_NullifyPoison (Abolish Poison)
 
     for _, unit in ipairs(units) do
+        local state = allstates[unit] or { unit = unit }
+
         if UnitExists(unit) then
-            local name, icon, _, _, duration, expiration = nil, nil, nil, nil, 0, 0
+            local aIcon, aDur, aExp
             for i = 1, 40 do
-                local n, ic, _, _, dur, exp, _, _, _, sId = UnitBuff(unit, i)
+                local n, ic, _, _, dur, exp = UnitBuff(unit, i)
                 if not n then break end
-                if n == SPELL then
-                    name, icon, duration, expiration = n, ic, dur or 0, exp or 0
+                if n == ABOLISH then
+                    aIcon, aDur, aExp = ic, dur or 0, exp or 0
                     break
                 end
             end
 
-            local guid = UnitGUID(unit) or unit
-            local state = allstates[guid] or {}
-            state.show       = true
-            state.changed    = true
-            state.unit       = unit
-            state.name       = UnitName(unit) or unit
-            state.icon       = icon or 136075   -- abolish poison icon fallback
-            state.hasBuff    = name ~= nil
-            state.progressType = "timed"
-            state.duration   = duration
-            state.expirationTime = expiration
-            state.autoHide   = false
-            allstates[guid]  = state
-        else
-            local guid = UnitGUID(unit) or unit
-            if allstates[guid] then
-                allstates[guid].show = false
-                allstates[guid].changed = true
+            local wStacks = 0
+            for i = 1, 40 do
+                local n, _, count = UnitDebuff(unit, i)
+                if not n then break end
+                if n == WOUND then
+                    wStacks = (count and count > 0) and count or 1
+                    break
+                end
             end
+
+            state.show           = true
+            state.changed        = true
+            state.unit           = unit
+            state.name           = UnitName(unit) or unit
+            state.icon           = aIcon or FALLBACK_ICON
+            state.hasAbolish     = aIcon ~= nil
+            state.stacks         = wStacks
+            state.progressType   = aIcon and "timed" or "static"
+            state.duration       = aDur or 0
+            state.expirationTime = aExp or 0
+            state.value          = wStacks
+            state.total          = 5
+            state.autoHide       = false
+        else
+            state.show    = false
+            state.changed = true
         end
+
+        allstates[unit] = state
     end
+
     return true
 end

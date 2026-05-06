@@ -1,119 +1,100 @@
-# Abolish Poison Tracker — TBC Anniversary Resto Druid
+# Abolish Poison + Wound Poison Stack Tracker — TBC Anniversary Resto Druid
 
-A two-part WeakAura group:
+A single Dynamic Group of icons (one per `player` / `party1..4`) that:
 
-1. **Poison Alert** — fires a short, recognizable sound the instant *any*
-   teammate (party or raid, including you) gets a Poison-type debuff applied.
-2. **Abolish Status** — five icons that show whether each party member
-   currently has *Abolish Poison* up, with the buff's remaining duration.
+- Shows whether each teammate has **Abolish Poison** rolling, with a
+  cooldown swipe for time remaining.
+- Overlays a **red 1‑5** in the centre of the icon equal to the
+  teammate's current **Wound Poison** stack count, so you can see who
+  to prioritise — and stop wasting GCDs reapplying Abolish on someone
+  who isn't actually being poisoned.
+- No audio cue. Pure visual.
 
-Tested against the WeakAuras 2 build that ships for Burning Crusade
-Classic / Anniversary (3.x of WeakAuras-Classic). All APIs used
-(`CombatLogGetCurrentEventInfo`, `UnitDebuff` with `dispelType`/`spellId`,
-`UnitBuff`, `IsInRaid`) are present in 2.5.x clients.
+Tested against WeakAuras 2 for Burning Crusade Classic / Anniversary
+(2.5.x client APIs: `UnitBuff`, `UnitDebuff` with stack count, dynamic
+group children).
 
 ## Why no copy-paste wago.io string?
 
-A wago.io / WeakAuras export string is `LibSerialize` → `LibDeflate` →
-base64 of the addon's internal table. Producing one outside the live
-client is brittle (a single field mismatch and the import silently
-fails). The recipe below builds the same aura in under two minutes and
-gives you something you can edit later.
+A wago.io export is `LibSerialize` → `LibDeflate` → base64 of the
+addon's table. Producing one outside the live client is fragile (a
+single field mismatch and the import silently fails). The recipe below
+builds the same aura in WeakAuras' UI in ~2 minutes and is editable
+forever after.
 
 ## One-time setup
 
 1. `/wa` to open WeakAuras.
-2. **New ▸ Group** — name it `Abolish Poison Tracker`.
+2. **New ▸ Dynamic Group** — name it `Abolish + Wound`, layout
+   horizontal, sort however you like (`Hybrid` works well so missing
+   buffs float to one end).
+3. Inside that group: **New ▸ Icon** — name it `Unit Slot`. This single
+   icon will fan out to 5 states (one per group slot) thanks to the
+   Custom Status trigger.
 
-### Child A — "Poison Alert" (the audio cue)
+### Trigger
 
-1. Inside the group: **New ▸ Icon** — name it `Poison Alert`.
-2. **Trigger** tab:
-   - Type: **Custom**
-   - Event Type: **Event**
-   - Events: `COMBAT_LOG_EVENT_UNFILTERED`
-   - Custom Trigger: paste the contents of
-     [`poison_alert_trigger.lua`](./poison_alert_trigger.lua).
-   - Duration Info (Custom): `function() return 3, 3 end` (so the icon
-     auto-hides after 3s).
-3. **Display** tab:
-   - Icon: leave at the spell icon WA picks, or set to a poison icon
-     (e.g. *Crippling Poison*, fileID `132274`).
-   - Text: `%unit` (or `%c` if you bind `aura_env.lastName` via Custom Text).
-4. **Actions ▸ On Show**:
-   - ☑ **Play Sound**
-   - **Sound by File Name (.ogg/.mp3):**
-     `Sound\Interface\MapPing.wav`
-     The map-ping is universally recognizable to WoW players, very short
-     (≈0.3 s), and quiet enough not to drown raid callouts. Swap for any
-     of these if you want a different vibe — all are short and sit well
-     under voice comms:
+- Type: **Custom**
+- Event Type: **Status**
+- Check On: `GROUP_ROSTER_UPDATE,UNIT_AURA,PLAYER_ENTERING_WORLD`
+- Custom Trigger: paste the contents of
+  [`abolish_status_trigger.lua`](./abolish_status_trigger.lua).
+- Custom Untrigger: `function() return false end`
+- Custom Variables (click *Add* for each):
+  - `unit` — string
+  - `name` — string
+  - `hasAbolish` — bool
+  - `stacks` — number
 
-     | Path | Feel |
-     | --- | --- |
-     | `Sound\Interface\MapPing.wav` *(default)* | Soft "ping" |
-     | `Sound\Interface\AuctionWindowOpen.wav` | Quick chime |
-     | `Sound\Interface\ReadyCheck.wav` | Sharp blip, draws eyes |
-     | `Sound\Doodad\BellTollAlliance.wav` | Single bell |
-     | `Sound\Spells\PVPFlagTaken.wav` | Crisp two-tone |
+### Display
 
-5. **Load** tab: Player Class **Druid**, In Group **Yes**. (Optional but
-   stops it firing in solo open-world, which would be noisy.)
+- Icon: leave blank — the trigger sets `state.icon` to the actual
+  Abolish Poison icon when it's up, and falls back to FileID `136067`
+  (`Spell_Nature_NullifyPoison`) otherwise.
+- ☑ Cooldown Swipe (uses `state.duration` / `expirationTime`).
+- **Custom Text** — paste [`stack_text.lua`](./stack_text.lua), set
+  *Update Custom Text On* to **Every Frame**, and put `%c` somewhere
+  visible. Anchor: `CENTER` of the icon, font size ~24, outline THICK,
+  colour **red (1, 0, 0, 1)**.
+- Add a second text region for the unit name if you want labels:
+  `%name`, anchored TOP, smaller font.
 
-### Children B–F — "Abolish on <unit>" (status icons)
+### Conditions (recommended)
 
-Five icons, one per `player`, `party1`, `party2`, `party3`, `party4`.
-For each:
+- If `Has Abolish` is **false** → desaturate icon, alpha 0.45. Quick
+  visual for "this teammate is uncovered".
+- If `Stacks` ≥ **3** → glow the icon (Pixel Glow, red). 3+ stacks is
+  the priority cleanse threshold — a 5-stack Wound Poison is a 50%
+  healing reduction and you usually want to top them off *before*
+  cleansing or just dispel through Abolish ticks.
+- If `Stacks` is **0** → the custom text already returns `""`, so no
+  extra rule needed for the number.
 
-1. **New ▸ Icon** — name it after the unit (e.g. `Abolish - party1`).
-2. **Trigger** tab:
-   - Type: **Aura**
-   - Buff/Debuff: **Buff**
-   - Aura Name: `Abolish Poison`
-   - Specific Unit: e.g. `party1`
-   - Show on: **Always** (so a missing buff renders as a desaturated icon).
-3. **Display** tab: enable Cooldown swipe + remaining-time text.
-   *Conditions* → if "Aura Found" is false: **Desaturate** + alpha 0.4.
-4. **Load** tab: Player Class **Druid**, In Group **Yes**.
+### Load
 
-If you'd rather have one dynamic icon-array that auto-resizes with the
-group instead of five fixed icons, use the Custom Status trigger in
-[`abolish_status_trigger.lua`](./abolish_status_trigger.lua) on a single
-Dynamic Group child.
+- Player Class: **Druid**
+- Talent / Spec: any (Resto in practice)
+- In Group: **Yes** (optional but stops the row showing solo).
 
-### Group layout
+## Notes
 
-- Group region type: **Dynamic Group**, horizontal.
-- Place the five Abolish icons in a tidy row above your party frames.
-- The Poison Alert icon: drag it *out* of the dynamic group (or set its
-  parent to the WA root) and anchor it to screen-center so the flash is
-  unmissable but doesn't shove the row around.
-
-## Notes & gotchas
-
-- Detection uses the `dispelType == "Poison"` field on the actually
-  applied debuff (not spell-school), so it correctly catches things like
-  *Mind-Numbing Poison*, *Wyvern Sting*, *Deadly Poison*,
-  *Serpent Sting*'s poison component, Naxxramas trash poisons, etc., and
-  ignores unrelated Nature-school debuffs.
-- The alert fires on *every* poison application — even ones Abolish
-  Poison will tick off on its own. That's intentional: in TBC, Abolish
-  has a 4 s tick interval and can leave a damaging poison up for that
-  whole window, so you usually want to know.  If you only want to hear
-  the cue when the target is *not* covered by Abolish, replace the
-  `return true` line in `poison_alert_trigger.lua` with:
-
-  ```lua
-  for j = 1, 40 do
-      local bn = UnitBuff(unit, j)
-      if not bn then break end
-      if bn == "Abolish Poison" then return false end
-  end
-  return true
-  ```
-
-- Abolish Poison spell IDs in TBC: 2893 / 8955 / 9756. Tracking by name
-  catches all ranks automatically, so the aura works while leveling too.
-- If your raid uses *Cleanse Totem* (Shaman) or other poison removal,
-  the alert will still fire on the *initial* application — that's the
-  point of the cue, not a bug.
+- **Tracking by name** catches every TBC rank automatically:
+  - Abolish Poison: 2893 / 8955 / 9756.
+  - Wound Poison: 13218 / 13222 / 13223 / 13224 / 27189.
+- **Stack semantics.** Wound Poison is a single shared debuff that
+  stacks up to 5; multiple rogues do *not* multiply it past 5.
+  `UnitDebuff`'s 3rd return is the live stack count, so the overlay
+  matches what the rogue sees.
+- **Why this beats a generic "poison applied" alert.** With this
+  display you can:
+  - Skip Abolish on a teammate who isn't being poisoned (saves GCDs
+    and mana — Abolish is 240 mana and a 1.5s GCD).
+  - Prioritise heals on whoever has the highest Wound Poison stack
+    (50% healing reduction at 5 stacks is typically the kill target).
+  - Notice when a teammate's Abolish actually expired vs. just got
+    overwritten by a refreshing dispatch.
+- **Performance.** The trigger runs on `UNIT_AURA` (only fires for
+  units whose auras actually changed) plus group-roster events, so it
+  won't poll every frame. The Custom Text *does* run every frame to
+  keep the number in sync — that's a pure tostring on a number, so
+  cost is negligible.
