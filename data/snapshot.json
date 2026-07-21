@@ -339,21 +339,21 @@
           "v": 0.0
         }
       ],
-      "change_24h_pct": -0.6873948677932397,
+      "change_24h_pct": -0.6526713727743468,
       "indicators": {
         "rsi14_1h": 49.26210872822783,
         "sma20_1h": 1.488,
         "sma50_1h": null
       },
-      "price_usd": 1.49,
-      "volume_24h_usd": 21462622.10466976
+      "price_usd": 1.48,
+      "volume_24h_usd": 21276511.298814178
     },
     "BIO": {
       "candles_1h": [],
-      "change_24h_pct": 3.782134097033514,
+      "change_24h_pct": 10.111778575631847,
       "indicators": {},
-      "price_usd": 0.02665578,
-      "volume_24h_usd": 13066760.659765676
+      "price_usd": 0.02811633,
+      "volume_24h_usd": 18348813.66648796
     },
     "BTC": {
       "candles_1h": [
@@ -694,14 +694,14 @@
           "v": 0.0
         }
       ],
-      "change_24h_pct": 1.3940384158297348,
+      "change_24h_pct": 1.6888323005654668,
       "indicators": {
         "rsi14_1h": 64.14650824856828,
         "sma20_1h": 65073.9,
         "sma50_1h": null
       },
-      "price_usd": 66268.0,
-      "volume_24h_usd": 29386437179.990475
+      "price_usd": 66237.0,
+      "volume_24h_usd": 30198275933.943348
     },
     "ETH": {
       "candles_1h": [
@@ -1042,30 +1042,30 @@
           "v": 0.0
         }
       ],
-      "change_24h_pct": 1.0328669532591641,
+      "change_24h_pct": 1.326140415522093,
       "indicators": {
         "rsi14_1h": 59.810300179482795,
         "sma20_1h": 1887.175,
         "sma50_1h": null
       },
-      "price_usd": 1923.9,
-      "volume_24h_usd": 11097041458.801773
+      "price_usd": 1920.53,
+      "volume_24h_usd": 11806050947.343168
     },
     "HYPE": {
       "candles_1h": [],
-      "change_24h_pct": -2.9116396309925903,
+      "change_24h_pct": -2.498543320324621,
       "indicators": {},
-      "price_usd": 60.81,
-      "volume_24h_usd": 355637938.1422081
+      "price_usd": 60.85,
+      "volume_24h_usd": 353522399.87281585
     },
     "ONDO": {
       "candles_1h": [],
-      "change_24h_pct": 11.769991488340564,
+      "change_24h_pct": 11.308578525071916,
       "indicators": {},
-      "price_usd": 0.398734,
-      "volume_24h_usd": 213466120.60220158
+      "price_usd": 0.394748,
+      "volume_24h_usd": 215875828.3133815
     }
   },
-  "generated_at": "2026-07-21T21:33:37Z",
+  "generated_at": "2026-07-21T22:30:19Z",
   "recent_alerts": []
 }
